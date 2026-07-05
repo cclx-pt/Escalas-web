@@ -24,7 +24,7 @@ export const DICTIONARY = {
     'nav.availability': 'Disponibilidade',
     'nav.schedule': 'Escala',
     'nav.teams': 'Equipas',
-    'nav.volunteers': 'Voluntários',
+    'nav.volunteers': 'Cooperadores',
     'nav.reports': 'Relatórios',
     'nav.calendar': 'Calendário',
     'nav.stats': 'Estatísticas',
@@ -63,7 +63,7 @@ export const DICTIONARY = {
     // Papéis
     'role.admin': 'Administrador',
     'role.leader': 'Líder',
-    'role.volunteer': 'Voluntário',
+    'role.volunteer': 'Cooperador',
 
     // Estados de mês
     'status.draft': 'Rascunho',
@@ -135,18 +135,21 @@ export const DICTIONARY = {
     'teams.noLeader': 'Sem líder',
 
     // Voluntários
-    'vol.title': 'Voluntários',
-    'vol.new': 'Novo voluntário',
+    'vol.title': 'Cooperadores',
+    'vol.new': 'Novo cooperador',
     'vol.filterTeam': 'Filtrar por equipa',
     'vol.language': 'Idioma',
     'vol.teams': 'Equipas',
+    'vol.delete': 'Apagar cooperador',
+    'vol.deleteConfirm':
+      'Esta ação remove também as disponibilidades e escalações associadas e não pode ser revertida.',
 
     // Relatórios
     'reports.title': 'Relatórios',
     'reports.matrix': 'Matriz de disponibilidade',
     'reports.pending': 'Pendentes',
     'reports.conflicts': 'Conflitos',
-    'reports.workload': 'Carga por voluntário',
+    'reports.workload': 'Carga por cooperador',
     'reports.assignments': 'escalações',
     'reports.pickMonth': 'Escolha um mês',
 
@@ -159,12 +162,12 @@ export const DICTIONARY = {
 
     // Estatísticas
     'stats.title': 'Estatísticas',
-    'stats.volunteers': 'Voluntários',
+    'stats.volunteers': 'Cooperadores',
     'stats.teams': 'Equipas',
     'stats.months': 'Meses',
     'stats.published': 'Publicadas',
     'stats.pendingRequests': 'Pedidos pendentes',
-    'stats.topVolunteers': 'Voluntários mais escalados',
+    'stats.topVolunteers': 'Cooperadores mais escalados',
 
     // Organização
     'org.title': 'Organização',
@@ -177,7 +180,11 @@ export const DICTIONARY = {
     'org.activeChurch': 'Igreja ativa',
     'org.newAdmin': 'Novo administrador',
     'org.importTeams': 'Importar equipas',
-    'org.importUsers': 'Importar voluntários',
+    'org.importUsers': 'Importar cooperadores',
+    'org.importAvailability': 'Importar disponibilidades',
+    'org.importAvailabilityDesc':
+      'Formato: nome;data1;data2;… (até 5 domingos, separados por ;). Escolha o mês de destino.',
+    'org.importMarkUnavailable': 'Marcar os restantes domingos como indisponível',
     'org.timezone': 'Fuso horário',
     'org.dateFormat': 'Formato de data',
 
@@ -195,7 +202,7 @@ export const DICTIONARY = {
   },
 
   en: {
-    appTitle: 'Volunteer scheduling',
+    appTitle: 'Cooperator scheduling',
     brand: 'Escalas CCLX',
     entity: 'Church',
     entities: 'Churches',
@@ -205,7 +212,7 @@ export const DICTIONARY = {
     'nav.availability': 'Availability',
     'nav.schedule': 'Schedule',
     'nav.teams': 'Teams',
-    'nav.volunteers': 'Volunteers',
+    'nav.volunteers': 'Cooperators',
     'nav.reports': 'Reports',
     'nav.calendar': 'Calendar',
     'nav.stats': 'Statistics',
@@ -242,7 +249,7 @@ export const DICTIONARY = {
 
     'role.admin': 'Administrator',
     'role.leader': 'Leader',
-    'role.volunteer': 'Volunteer',
+    'role.volunteer': 'Cooperator',
 
     'status.draft': 'Draft',
     'status.availability_open': 'Availability open',
@@ -306,17 +313,20 @@ export const DICTIONARY = {
     'teams.addMember': 'Add member',
     'teams.noLeader': 'No leader',
 
-    'vol.title': 'Volunteers',
-    'vol.new': 'New volunteer',
+    'vol.title': 'Cooperators',
+    'vol.new': 'New cooperator',
     'vol.filterTeam': 'Filter by team',
     'vol.language': 'Language',
     'vol.teams': 'Teams',
+    'vol.delete': 'Delete cooperator',
+    'vol.deleteConfirm':
+      'This also removes their availabilities and assignments and cannot be undone.',
 
     'reports.title': 'Reports',
     'reports.matrix': 'Availability matrix',
     'reports.pending': 'Pending',
     'reports.conflicts': 'Conflicts',
-    'reports.workload': 'Workload per volunteer',
+    'reports.workload': 'Workload per cooperator',
     'reports.assignments': 'assignments',
     'reports.pickMonth': 'Pick a month',
 
@@ -327,12 +337,12 @@ export const DICTIONARY = {
     'cal.linkCopied': 'Link copied.',
 
     'stats.title': 'Statistics',
-    'stats.volunteers': 'Volunteers',
+    'stats.volunteers': 'Cooperators',
     'stats.teams': 'Teams',
     'stats.months': 'Months',
     'stats.published': 'Published',
     'stats.pendingRequests': 'Pending requests',
-    'stats.topVolunteers': 'Most scheduled volunteers',
+    'stats.topVolunteers': 'Most scheduled cooperators',
 
     'org.title': 'Organization',
     'org.orgs': 'Organizations',
@@ -344,7 +354,11 @@ export const DICTIONARY = {
     'org.activeChurch': 'Active church',
     'org.newAdmin': 'New administrator',
     'org.importTeams': 'Import teams',
-    'org.importUsers': 'Import volunteers',
+    'org.importUsers': 'Import cooperators',
+    'org.importAvailability': 'Import availability',
+    'org.importAvailabilityDesc':
+      'Format: name;date1;date2;… (up to 5 Sundays, separated by ;). Pick the target month.',
+    'org.importMarkUnavailable': 'Mark the remaining Sundays as unavailable',
     'org.timezone': 'Timezone',
     'org.dateFormat': 'Date format',
 

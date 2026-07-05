@@ -123,14 +123,14 @@ volunteersRouter.put(
   manage,
   asyncHandler(async (req, res) => {
     const churchId = effectiveChurchId(req)
-    assertUuid(req.params.id, 'Voluntário')
+    assertUuid(req.params.id, 'Cooperador')
     const data = editSchema.parse(req.body)
 
     const target = await pool.query('SELECT id, is_org_admin FROM users WHERE id = $1 AND church_id = $2', [
       req.params.id,
       churchId,
     ])
-    if (!target.rows[0]) throw new HttpError(404, 'Voluntário não encontrado.')
+    if (!target.rows[0]) throw new HttpError(404, 'Cooperador não encontrado.')
 
     // Regras: não te podes despromover/desativar a ti próprio.
     if (req.params.id === req.user.sub) {
@@ -178,13 +178,13 @@ volunteersRouter.patch(
   manage,
   asyncHandler(async (req, res) => {
     const churchId = effectiveChurchId(req)
-    assertUuid(req.params.id, 'Voluntário')
+    assertUuid(req.params.id, 'Cooperador')
     if (req.params.id === req.user.sub) throw new HttpError(400, 'Não pode desativar a sua própria conta.')
     const target = await pool.query(
       'SELECT is_active, is_org_admin FROM users WHERE id = $1 AND church_id = $2',
       [req.params.id, churchId],
     )
-    if (!target.rows[0]) throw new HttpError(404, 'Voluntário não encontrado.')
+    if (!target.rows[0]) throw new HttpError(404, 'Cooperador não encontrado.')
     if (target.rows[0].is_org_admin) throw new HttpError(400, 'Não é possível desativar um org admin.')
     const { rows } = await pool.query(
       'UPDATE users SET is_active = NOT is_active WHERE id = $1 RETURNING is_active',
@@ -200,7 +200,7 @@ volunteersRouter.patch(
   manage,
   asyncHandler(async (req, res) => {
     const churchId = effectiveChurchId(req)
-    assertUuid(req.params.id, 'Voluntário')
+    assertUuid(req.params.id, 'Cooperador')
     const { role } = z.object({ role: z.enum(['admin', 'leader', 'volunteer']) }).parse(req.body)
     if (req.params.id === req.user.sub && role !== 'admin') {
       throw new HttpError(400, 'Não pode alterar o seu próprio papel.')
@@ -209,7 +209,30 @@ volunteersRouter.patch(
       'UPDATE users SET role = $3 WHERE id = $1 AND church_id = $2',
       [req.params.id, churchId, role],
     )
-    if (!rowCount) throw new HttpError(404, 'Voluntário não encontrado.')
+    if (!rowCount) throw new HttpError(404, 'Cooperador não encontrado.')
     res.json({ ok: true, role })
+  }),
+)
+
+// DELETE /data/volunteers/:id — apaga um voluntário (dados associados removidos por cascata).
+volunteersRouter.delete(
+  '/:id',
+  manage,
+  asyncHandler(async (req, res) => {
+    const churchId = effectiveChurchId(req)
+    assertUuid(req.params.id, 'Cooperador')
+    if (req.params.id === req.user.sub) {
+      throw new HttpError(400, 'Não pode apagar a sua própria conta.')
+    }
+    const target = await pool.query(
+      'SELECT is_org_admin FROM users WHERE id = $1 AND church_id = $2',
+      [req.params.id, churchId],
+    )
+    if (!target.rows[0]) throw new HttpError(404, 'Cooperador não encontrado.')
+    if (target.rows[0].is_org_admin) {
+      throw new HttpError(400, 'Não é possível apagar um org admin.')
+    }
+    await pool.query('DELETE FROM users WHERE id = $1 AND church_id = $2', [req.params.id, churchId])
+    res.json({ ok: true })
   }),
 )

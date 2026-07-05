@@ -183,7 +183,7 @@ scheduleRouter.post(
           [position.team_id, entry.userId],
         )
         if (!member.rows[0]) {
-          throw new HttpError(400, 'O voluntário não pertence a esta equipa.')
+          throw new HttpError(400, 'O cooperador não pertence a esta equipa.')
         }
 
         // Disponibilidade nesse domingo.
@@ -196,7 +196,7 @@ scheduleRouter.post(
 
         if (month.status === 'scheduling' && unavailable) {
           // Pré-publicação: não é permitido escalar indisponíveis.
-          throw new HttpError(409, 'Não é possível escalar um voluntário indisponível antes de publicar.')
+          throw new HttpError(409, 'Não é possível escalar um cooperador indisponível antes de publicar.')
         }
 
         const isManual = month.status === 'final' && unavailable

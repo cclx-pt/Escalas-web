@@ -37,6 +37,7 @@ export const volunteersApi = {
   update: (id, payload) => http.put(`/data/volunteers/${id}`, payload),
   toggle: (id) => http.patch(`/data/volunteers/${id}/toggle`),
   setRole: (id, role) => http.patch(`/data/volunteers/${id}/role`, { role }),
+  remove: (id) => http.del(`/data/volunteers/${id}`),
 }
 
 export const teamsApi = {
@@ -110,4 +111,5 @@ export const adminRequestsApi = {
 export const dataImportApi = {
   teams: (csv) => http.post('/data/import/teams', { csv }),
   users: (csv) => http.post('/data/import/users', { csv }),
+  availabilities: (payload) => http.post('/data/import/availabilities', payload),
 }

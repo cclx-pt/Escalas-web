@@ -9,9 +9,10 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { pool } from '../db/pool.js'
-import { asyncHandler } from '../lib/http.js'
+import { asyncHandler, HttpError } from '../lib/http.js'
 import { effectiveChurchId } from '../lib/tenant.js'
 import { requireRole } from '../middleware/auth.js'
+import { monthLabel, sundaysOf, parseImportDate } from '../lib/dates.js'
 
 export const dataImportRouter = Router()
 
@@ -30,6 +31,16 @@ function parseCsv(text) {
 function looksLikeHeader(cols, headerHints) {
   const first = (cols[0] || '').toLowerCase()
   return headerHints.some((h) => first.includes(h))
+}
+
+/** Normaliza um nome para comparação (sem acentos, minúsculas, espaços colapsados). */
+function normalizeName(value) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 // POST /data/import/teams — cria equipas a partir de CSV.
@@ -119,5 +130,120 @@ dataImportRouter.post(
     })
 
     res.json({ ok: true, created, skipped, errors })
+  }),
+)
+
+const availabilitiesSchema = z.object({
+  csv: z.string().min(1, 'CSV vazio.'),
+  year: z.number().int().min(2000).max(2100),
+  month: z.number().int().min(1).max(12),
+  markUnavailable: z.boolean().optional().default(true),
+})
+
+// POST /data/import/availabilities — importa disponibilidades (nome + até 5 datas).
+// Pede o mês (ano/mês) e valida que já está criado nesta igreja.
+dataImportRouter.post(
+  '/availabilities',
+  asyncHandler(async (req, res) => {
+    const churchId = effectiveChurchId(req)
+    const { csv, year, month, markUnavailable } = availabilitiesSchema.parse(req.body)
+
+    // Valida que o mês está criado nesta igreja.
+    const monthRes = await pool.query(
+      'SELECT id FROM months WHERE church_id = $1 AND year = $2 AND month = $3',
+      [churchId, year, month],
+    )
+    if (!monthRes.rows[0]) {
+      throw new HttpError(404, `O mês ${monthLabel(year, month)} ainda não está criado.`)
+    }
+    const monthId = monthRes.rows[0].id
+    const sundays = sundaysOf(year, month)
+    const sundaySet = new Set(sundays)
+
+    const rows = parseCsv(csv)
+    if (
+      rows.length &&
+      looksLikeHeader(rows[0], ['nome', 'name', 'voluntario', 'volunteer', 'cooperador', 'cooperator'])
+    ) {
+      rows.shift()
+    }
+
+    // Mapa nome -> ids de utilizadores ativos (deteta homónimos).
+    const usersRes = await pool.query(
+      'SELECT id, name FROM users WHERE church_id = $1 AND is_active = TRUE',
+      [churchId],
+    )
+    const idsByName = new Map()
+    for (const u of usersRes.rows) {
+      const key = normalizeName(u.name)
+      if (!idsByName.has(key)) idsByName.set(key, [])
+      idsByName.get(key).push(u.id)
+    }
+
+    let processed = 0
+    let availableMarked = 0
+    let unavailableMarked = 0
+    const notFound = []
+    const ambiguous = []
+    const errors = []
+
+    await pool.withTransaction(async (client) => {
+      for (const cols of rows) {
+        const name = (cols[0] || '').trim()
+        if (!name) continue
+
+        const matches = idsByName.get(normalizeName(name)) || []
+        if (matches.length === 0) {
+          notFound.push(name)
+          continue
+        }
+        if (matches.length > 1) {
+          ambiguous.push(name)
+          continue
+        }
+        const userId = matches[0]
+
+        // Datas listadas -> domingos disponíveis (até 5).
+        const availableSundays = new Set()
+        for (const token of cols.slice(1, 6).map((c) => c.trim()).filter(Boolean)) {
+          const iso = parseImportDate(token, year, month)
+          if (!iso) {
+            errors.push(`Data inválida "${token}" (${name})`)
+            continue
+          }
+          if (!sundaySet.has(iso)) {
+            errors.push(`${token} não é um domingo de ${monthLabel(year, month)} (${name})`)
+            continue
+          }
+          availableSundays.add(iso)
+        }
+
+        processed += 1
+
+        for (const sunday of sundays) {
+          const isAvailable = availableSundays.has(sunday)
+          if (!isAvailable && !markUnavailable) continue
+          await client.query(
+            `INSERT INTO availabilities (month_id, user_id, sunday, status)
+             VALUES ($1, $2, $3, $4)
+             ON CONFLICT (month_id, user_id, sunday)
+             DO UPDATE SET status = EXCLUDED.status, submitted_at = now()`,
+            [monthId, userId, sunday, isAvailable ? 'available' : 'unavailable'],
+          )
+          if (isAvailable) availableMarked += 1
+          else unavailableMarked += 1
+        }
+      }
+    })
+
+    res.json({
+      ok: true,
+      processed,
+      availableMarked,
+      unavailableMarked,
+      notFound,
+      ambiguous,
+      errors,
+    })
   }),
 )

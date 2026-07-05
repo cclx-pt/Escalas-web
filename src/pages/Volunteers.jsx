@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Plus, Search, Pencil } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2 } from 'lucide-react'
 import { useI18n } from '@/hooks/useI18n'
 import { volunteersApi, teamsApi } from '@/services/api'
 import { LANGUAGES } from '@/i18n'
@@ -33,6 +33,7 @@ export default function Volunteers() {
   const [q, setQ] = useState('')
   const [teamId, setTeamId] = useState('')
   const [dialog, setDialog] = useState(null) // null | {mode:'create'|'edit', ...form, id}
+  const [confirmDelete, setConfirmDelete] = useState(null) // null | volunteer
 
   const { data: teamsData } = useQuery({ queryKey: ['teams'], queryFn: teamsApi.list })
   const teams = teamsData?.teams || []
@@ -49,6 +50,16 @@ export default function Volunteers() {
   const toggle = useMutation({
     mutationFn: (id) => volunteersApi.toggle(id),
     onSuccess: invalidate,
+    onError: onErr,
+  })
+
+  const remove = useMutation({
+    mutationFn: (id) => volunteersApi.remove(id),
+    onSuccess: () => {
+      invalidate()
+      setConfirmDelete(null)
+      toast.success(t('common.deleted'))
+    },
     onError: onErr,
   })
 
@@ -169,6 +180,14 @@ export default function Volunteers() {
                       <Button size="icon" variant="ghost" onClick={() => openEdit(v)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => setConfirmDelete(v)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -251,6 +270,33 @@ export default function Volunteers() {
           <DialogFooter>
             <Button onClick={() => save.mutate()} disabled={save.isPending || !dialog?.name || !dialog?.email}>
               {t('common.save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('vol.delete')}</DialogTitle>
+          </DialogHeader>
+          {confirmDelete && (
+            <div className="space-y-1">
+              <p className="font-medium">{confirmDelete.name}</p>
+              <p className="text-sm text-muted-foreground">{confirmDelete.email}</p>
+              <p className="pt-2 text-sm text-muted-foreground">{t('vol.deleteConfirm')}</p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDelete(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => remove.mutate(confirmDelete.id)}
+              disabled={remove.isPending}
+            >
+              {t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

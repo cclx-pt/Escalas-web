@@ -33,7 +33,7 @@ const shell = (title, inner) => `
     <h2 style="color:#111827">${title}</h2>
     ${inner}
     <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0" />
-    <p style="color:#9ca3af;font-size:12px">Escalas CCLX — gestão de escalas de voluntários.</p>
+    <p style="color:#9ca3af;font-size:12px">Escalas CCLX — gestão de escalas de cooperadores.</p>
   </div>`
 
 /** Envia um email genérico. Devolve { mocked } consoante haja SMTP. */

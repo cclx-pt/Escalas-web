@@ -24,7 +24,7 @@ export default function Publish({ id }) {
   })
   const notifyVolunteers = useMutation({
     mutationFn: () => publishApi.notifyVolunteers(id),
-    onSuccess: (r) => toast.success(`${r.sent} voluntário(s) notificados.`),
+    onSuccess: (r) => toast.success(`${r.sent} cooperador(es) notificados.`),
     onError: (e) => toast.error(e.message),
   })
 

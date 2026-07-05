@@ -212,13 +212,13 @@ teamsRouter.post(
   asyncHandler(async (req, res) => {
     const churchId = effectiveChurchId(req)
     assertUuid(req.params.id, 'Equipa')
-    const { userId } = z.object({ userId: z.string().uuid('Voluntário inválido.') }).parse(req.body)
+    const { userId } = z.object({ userId: z.string().uuid('Cooperador inválido.') }).parse(req.body)
     await assertTeamInChurch(req.params.id, churchId)
     const user = await pool.query('SELECT id FROM users WHERE id = $1 AND church_id = $2', [
       userId,
       churchId,
     ])
-    if (!user.rows[0]) throw new HttpError(404, 'Voluntário não encontrado nesta igreja.')
+    if (!user.rows[0]) throw new HttpError(404, 'Cooperador não encontrado nesta igreja.')
     await pool.query(
       'INSERT INTO team_members (team_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
       [req.params.id, userId],
@@ -234,7 +234,7 @@ teamsRouter.delete(
   asyncHandler(async (req, res) => {
     const churchId = effectiveChurchId(req)
     assertUuid(req.params.id, 'Equipa')
-    assertUuid(req.params.userId, 'Voluntário')
+    assertUuid(req.params.userId, 'Cooperador')
     await assertTeamInChurch(req.params.id, churchId)
     await pool.query('DELETE FROM team_members WHERE team_id = $1 AND user_id = $2', [
       req.params.id,

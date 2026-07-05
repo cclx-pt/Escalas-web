@@ -271,7 +271,7 @@ function renderPdf(doc, schedule) {
 
   if (hasManual) {
     doc.moveDown(0.5)
-    doc.fontSize(8).fillColor('#64748b').text('* alteração manual (voluntário indisponível).')
+    doc.fontSize(8).fillColor('#64748b').text('* alteração manual (cooperador indisponível).')
   }
 }
 
