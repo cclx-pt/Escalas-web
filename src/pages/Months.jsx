@@ -157,7 +157,7 @@ export default function Months() {
 
       <div className="mb-4 w-56">
         <Select value={status || 'all'} onValueChange={(v) => setStatus(v === 'all' ? '' : v)}>
-          <SelectTrigger>
+          <SelectTrigger aria-label={t('common.status')}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

@@ -192,6 +192,7 @@ export default function Translations() {
 }
 
 function TranslationRow({ tr, onSave, onDelete }) {
+  const { t } = useI18n()
   const [value, setValue] = useState(tr.value)
   const dirty = value !== tr.value
   return (
@@ -209,7 +210,7 @@ function TranslationRow({ tr, onSave, onDelete }) {
         </div>
       </TableCell>
       <TableCell>
-        <Button size="icon" variant="ghost" onClick={onDelete}>
+        <Button size="icon" variant="ghost" aria-label={`${t('common.delete')} ${tr.key}`} onClick={onDelete}>
           <Trash2 className="h-4 w-4" />
         </Button>
       </TableCell>

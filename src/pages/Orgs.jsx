@@ -70,12 +70,18 @@ export default function Orgs() {
                     {o.churchCount} {t('org.churches').toLowerCase()}
                   </p>
                 </div>
-                <Button size="icon" variant="ghost" onClick={() => setDialog({ id: o.id, name: o.name })}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  aria-label={`${t('common.edit')} ${o.name}`}
+                  onClick={() => setDialog({ id: o.id, name: o.name })}
+                >
                   <Pencil className="h-4 w-4" />
                 </Button>
                 <Button
                   size="icon"
                   variant="ghost"
+                  aria-label={`${t('common.delete')} ${o.name}`}
                   onClick={() => {
                     if (window.confirm(`${t('common.delete')}?`)) remove.mutate(o.id)
                   }}
