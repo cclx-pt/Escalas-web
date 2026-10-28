@@ -10,19 +10,62 @@
  * igreja do próprio utilizador). Usado para o scoping multi-tenant.
  */
 import { SESSION_COOKIE, verifySession } from '../auth/jwt.js'
+import { pool } from '../db/pool.js'
 
-export function loadUser(req, _res, next) {
-  const token = req.cookies?.[SESSION_COOKIE]
-  if (token) {
+/** Estado atual do utilizador na BD (fonte de verdade para papel/ativo/aprovado). */
+async function findSessionUser(userId) {
+  const { rows } = await pool.query(
+    `SELECT church_id, role, is_active, is_org_admin, approved_at
+     FROM users WHERE id = $1`,
+    [userId],
+  )
+  return rows[0] ?? null
+}
+
+/**
+ * Cria o middleware loadUser. O JWT só prova a identidade; papel, estado ativo
+ * e aprovação são relidos da BD em cada pedido, para que desativar uma conta ou
+ * mudar o papel tenha efeito imediato (e não só quando o token expira).
+ */
+export function createLoadUser(findUser = findSessionUser) {
+  return async function loadUser(req, res, next) {
+    const token = req.cookies?.[SESSION_COOKIE]
+    if (!token) return next()
+
+    let session
     try {
-      req.user = verifySession(token)
-      req.churchId = req.user.activeChurchId || req.user.churchId || null
+      session = verifySession(token)
     } catch {
       req.user = null
+      return next()
+    }
+
+    try {
+      const current = await findUser(session.sub)
+      if (!current || !current.is_active) {
+        res.clearCookie(SESSION_COOKIE, { path: '/' })
+        req.user = null
+        return next()
+      }
+      const isOrgAdmin = !!current.is_org_admin
+      req.user = {
+        ...session,
+        role: current.role,
+        churchId: current.church_id,
+        isOrgAdmin,
+        approved: !!current.approved_at,
+        // Só um org admin (ainda) pode ter uma igreja ativa diferente da sua.
+        activeChurchId: isOrgAdmin ? session.activeChurchId || null : null,
+      }
+      req.churchId = req.user.activeChurchId || req.user.churchId || null
+      next()
+    } catch (err) {
+      next(err)
     }
   }
-  next()
 }
+
+export const loadUser = createLoadUser()
 
 export function requireAuth(req, res, next) {
   if (!req.user) {
