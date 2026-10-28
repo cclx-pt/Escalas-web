@@ -6,6 +6,7 @@
  */
 import nodemailer from 'nodemailer'
 import { config } from '../config.js'
+import { escapeHtml } from '../lib/html.js'
 
 let transporter = null
 
@@ -62,4 +63,16 @@ export async function sendOtpEmail(email, code) {
     console.log(`[email:otp-log] Código OTP para ${email}: ${code}`)
   }
   return sendEmail({ to: email, subject, text, html })
+}
+
+/**
+ * Email aos admins sobre um novo pedido de acesso. O nome e o email vêm do
+ * formulário público de registo, por isso são escapados no HTML.
+ */
+export function accessRequestEmail({ name, email, churchName }) {
+  return {
+    subject: 'Novo pedido de acesso — Escalas CCLX',
+    text: `${name} (${email}) pediu acesso a ${churchName}. Aprove em Pedidos de acesso.`,
+    html: `<p><strong>${escapeHtml(name)}</strong> (${escapeHtml(email)}) pediu acesso a <strong>${escapeHtml(churchName)}</strong>.</p><p>Aprove ou rejeite na área de <em>Pedidos de acesso</em>.</p>`,
+  }
 }
