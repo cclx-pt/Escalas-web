@@ -11,6 +11,12 @@ const { Pool, types } = pg
 // Faz o parse de BIGINT (COUNT, SUM) como Number em vez de string.
 types.setTypeParser(20, (value) => (value === null ? null : Number(value)))
 
+// DATE (oid 1082) fica como texto 'YYYY-MM-DD'. Por omissão o pg cria um Date à
+// meia-noite local, e o toISOString() posterior recuava um dia em fusos a leste
+// de UTC (ex.: Europe/Lisbon no verão).
+export const DATE_OID = 1082
+types.setTypeParser(DATE_OID, (value) => value)
+
 const pgPool = new Pool({
   connectionString: config.db.connectionString,
   ssl: config.db.ssl,
