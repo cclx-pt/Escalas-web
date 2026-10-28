@@ -93,6 +93,7 @@ As essenciais (ver [server/.env.example](server/.env.example) para a lista compl
 | `OTP_PEPPER` | ✅ | Pepper para o hash do código OTP. |
 | `DB_SSL` | | `false` para Postgres local sem TLS (Supabase: deixa por definir). |
 | `SESSION_HOURS`, `OTP_TTL_MINUTES`, `OTP_MAX_ATTEMPTS` | | Parâmetros de sessão/OTP. |
+| `OTP_WINDOW_MINUTES`, `OTP_MAX_CODES_PER_WINDOW`, `OTP_MAX_FAILURES_PER_WINDOW` | | Limites por email guardados na BD (por omissão: 5 códigos e 10 falhas por 60 min). |
 | `SMTP_*`, `MAIL_FROM` | | SMTP para envio de emails (sem isto, modo consola). |
 | `ALLOW_PUBLIC_REGISTRATION` | | Permite `/auth/onboard` (criar igreja + admin). |
 | `SEED_*` | | Dados do seed inicial (org, igreja, admin). |
@@ -107,7 +108,7 @@ As essenciais (ver [server/.env.example](server/.env.example) para a lista compl
 | `npm start` | Arranque combinado (backend serve a API + `dist/`). |
 | `npm run db:migrate` / `db:seed` | Migração / seed da BD. |
 | `npm run lint` / `npm test` | ESLint / testes do frontend (Vitest). |
-| `npm --prefix server test` | Testes do backend (`node --test`). |
+| `npm --prefix server test` | Testes do backend (`node --test`). Com `TEST_DATABASE_URL` definido corre também os testes de integração OTP contra essa BD. |
 
 ## Deploy (Vercel)
 
