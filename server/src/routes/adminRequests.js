@@ -7,6 +7,7 @@ import { asyncHandler, HttpError, assertUuid } from '../lib/http.js'
 import { effectiveChurchId } from '../lib/tenant.js'
 import { requireRole } from '../middleware/auth.js'
 import { sendEmail } from '../auth/email.js'
+import { escapeHtml } from '../lib/html.js'
 
 export const adminRequestsRouter = Router()
 
@@ -71,7 +72,3 @@ adminRequestsRouter.post(
     res.json({ ok: true })
   }),
 )
-
-function escapeHtml(s) {
-  return String(s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch])
-}

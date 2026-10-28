@@ -97,6 +97,7 @@ export default function Churches() {
                 <Button
                   size="icon"
                   variant="ghost"
+                  aria-label={`${t('common.edit')} ${c.name}`}
                   onClick={() =>
                     setDialog({
                       id: c.id,
@@ -112,6 +113,7 @@ export default function Churches() {
                 <Button
                   size="icon"
                   variant="ghost"
+                  aria-label={`${t('common.delete')} ${c.name}`}
                   onClick={() => {
                     if (window.confirm(`${t('common.delete')}?`)) remove.mutate(c.id)
                   }}

@@ -42,6 +42,11 @@ export const config = {
     pepper: required('OTP_PEPPER'),
     ttlMinutes: Number(process.env.OTP_TTL_MINUTES ?? 15),
     maxAttempts: Number(process.env.OTP_MAX_ATTEMPTS ?? 5),
+    // Limites por email numa janela deslizante, guardados na BD (valem entre
+    // instâncias serverless, ao contrário do rate limit em memória por IP).
+    windowMinutes: Number(process.env.OTP_WINDOW_MINUTES ?? 60),
+    maxCodesPerWindow: Number(process.env.OTP_MAX_CODES_PER_WINDOW ?? 5),
+    maxFailuresPerWindow: Number(process.env.OTP_MAX_FAILURES_PER_WINDOW ?? 10),
     devMasterCode: isProd ? '' : process.env.DEV_MASTER_OTP || '',
     logCodes: process.env.OTP_LOG_CODES === 'true',
   },

@@ -139,7 +139,7 @@ export default function TeamDetail({ id }) {
           </CardHeader>
           <CardContent>
             <Select value={team.leaderId || 'none'} onValueChange={(v) => setLeader.mutate(v === 'none' ? null : v)}>
-              <SelectTrigger>
+              <SelectTrigger aria-label={t('teams.leader')}>
                 <SelectValue placeholder={t('teams.noLeader')} />
               </SelectTrigger>
               <SelectContent>
@@ -165,9 +165,15 @@ export default function TeamDetail({ id }) {
                 value={positionName}
                 onChange={(e) => setPositionName(e.target.value)}
                 placeholder="Bar 1"
+                aria-label={t('teams.positionName')}
                 onKeyDown={(e) => e.key === 'Enter' && positionName && addPosition.mutate()}
               />
-              <Button size="icon" onClick={() => addPosition.mutate()} disabled={!positionName}>
+              <Button
+                size="icon"
+                aria-label={t('teams.addPosition')}
+                onClick={() => addPosition.mutate()}
+                disabled={!positionName}
+              >
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
@@ -175,7 +181,11 @@ export default function TeamDetail({ id }) {
               {positions.map((p) => (
                 <li key={p.id} className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-1.5 text-sm">
                   {p.name}
-                  <button className="text-muted-foreground hover:text-destructive" onClick={() => removePosition.mutate(p.id)}>
+                  <button
+                    className="text-muted-foreground hover:text-destructive"
+                    aria-label={`${t('common.remove')} ${p.name}`}
+                    onClick={() => removePosition.mutate(p.id)}
+                  >
                     <X className="h-4 w-4" />
                   </button>
                 </li>
@@ -193,7 +203,7 @@ export default function TeamDetail({ id }) {
           <CardContent className="space-y-3">
             <div className="flex gap-2">
               <Select value={memberId} onValueChange={setMemberId}>
-                <SelectTrigger className="max-w-xs">
+                <SelectTrigger className="max-w-xs" aria-label={t('teams.addMember')}>
                   <SelectValue placeholder={t('teams.addMember')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -212,7 +222,11 @@ export default function TeamDetail({ id }) {
               {members.map((m) => (
                 <span key={m.id} className="flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-sm">
                   {m.name}
-                  <button className="text-muted-foreground hover:text-destructive" onClick={() => removeMember.mutate(m.id)}>
+                  <button
+                    className="text-muted-foreground hover:text-destructive"
+                    aria-label={`${t('common.remove')} ${m.name}`}
+                    onClick={() => removeMember.mutate(m.id)}
+                  >
                     <X className="h-3.5 w-3.5" />
                   </button>
                 </span>

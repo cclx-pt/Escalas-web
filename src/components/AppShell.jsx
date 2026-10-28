@@ -128,7 +128,13 @@ export function AppShell({ children }) {
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border px-4">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(true)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              aria-label={t('nav.menu')}
+              onClick={() => setMobileOpen(true)}
+            >
               <Menu className="h-5 w-5" />
             </Button>
             <ChurchSwitcher />

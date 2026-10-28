@@ -1,7 +1,7 @@
 /**
  * app.js — construção da app Express (sem listen).
  *
- * Ordem: trust proxy -> CORS -> JSON -> cookies -> loadUser -> rotas -> SPA -> erros.
+ * Ordem: trust proxy -> cabeçalhos de segurança -> CORS -> JSON -> cookies -> loadUser -> rotas -> SPA -> erros.
  * As rotas públicas (health, feed iCal, traduções públicas) ficam fora do grupo
  * protegido; o restante /data exige sessão e conta aprovada.
  */
@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url'
 
 import { config } from './config.js'
 import { loadUser, requireAuth, requireApproved } from './middleware/auth.js'
+import { securityHeaders } from './lib/security.js'
 
 import { healthRouter } from './routes/health.js'
 import { authRouter } from './auth/routes.js'
@@ -40,6 +41,7 @@ if (config.isProd) {
   app.set('trust proxy', 1)
 }
 
+app.use(securityHeaders())
 app.use(
   cors({
     origin: config.corsOrigin,

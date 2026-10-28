@@ -9,6 +9,7 @@ import { asyncHandler, HttpError, assertUuid } from '../lib/http.js'
 import { effectiveChurchId } from '../lib/tenant.js'
 import { requireRole } from '../middleware/auth.js'
 import { sendEmail } from '../auth/email.js'
+import { escapeHtml } from '../lib/html.js'
 import { monthLabel, sundaysOf, shortDate } from '../lib/dates.js'
 
 export const publishRouter = Router()
@@ -308,10 +309,6 @@ function formatTeamText(team, sundays) {
 
 function isHex(c) {
   return /^#[0-9a-fA-F]{6}$/.test(c || '')
-}
-
-function escapeHtml(s) {
-  return String(s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch])
 }
 
 function toIso(value) {

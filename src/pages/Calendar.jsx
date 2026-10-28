@@ -65,8 +65,8 @@ export default function Calendar() {
                 Adicione este endereço à sua aplicação de calendário para receber as escalas publicadas.
               </p>
               <div className="flex gap-2">
-                <Input readOnly value={icalUrl} />
-                <Button size="icon" onClick={copy}>
+                <Input readOnly value={icalUrl} aria-label={t('cal.subscribe')} />
+                <Button size="icon" aria-label={t('cal.copyLink')} onClick={copy}>
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>

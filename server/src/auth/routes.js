@@ -13,7 +13,7 @@ import { config } from '../config.js'
 import { asyncHandler, HttpError } from '../lib/http.js'
 import { slugify } from '../lib/slug.js'
 import { issueCode, verifyCode } from './otp.js'
-import { sendEmail, sendOtpEmail } from './email.js'
+import { sendEmail, sendOtpEmail, accessRequestEmail } from './email.js'
 import { signSession, cookieOptions, SESSION_COOKIE } from './jwt.js'
 import { requireAuth } from '../middleware/auth.js'
 
@@ -89,11 +89,15 @@ authRouter.post(
     const user = await findActiveUser(email)
     if (user) {
       const code = await issueCode(email)
-      await sendOtpEmail(email, code).catch((err) =>
-        console.error('[auth] falha ao enviar OTP:', err?.message ?? err),
-      )
+      if (code) {
+        await sendOtpEmail(email, code).catch((err) =>
+          console.error('[auth] falha ao enviar OTP:', err?.message ?? err),
+        )
+      } else {
+        console.warn(`[auth] limite de códigos atingido para ${email}`)
+      }
     }
-    // Resposta sempre igual (anti-enumeração).
+    // Resposta sempre igual (anti-enumeração), mesmo quando o limite é atingido.
     res.json({ ok: true, message: 'Se o email estiver autorizado, enviámos um código.' })
   }),
 )
@@ -194,9 +198,7 @@ authRouter.post(
     for (const a of admins.rows) {
       await sendEmail({
         to: a.email,
-        subject: 'Novo pedido de acesso — Escalas CCLX',
-        text: `${name} (${email}) pediu acesso a ${church.rows[0].name}. Aprove em Pedidos de acesso.`,
-        html: `<p><strong>${name}</strong> (${email}) pediu acesso a <strong>${church.rows[0].name}</strong>.</p><p>Aprove ou rejeite na área de <em>Pedidos de acesso</em>.</p>`,
+        ...accessRequestEmail({ name, email, churchName: church.rows[0].name }),
       }).catch(() => {})
     }
 

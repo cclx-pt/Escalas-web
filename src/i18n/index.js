@@ -31,6 +31,7 @@ export const DICTIONARY = {
     'nav.requests': 'Pedidos de acesso',
     'nav.org': 'Organização',
     'nav.logout': 'Sair',
+    'nav.menu': 'Menu',
 
     // Comum
     'common.actions': 'Ações',
@@ -131,6 +132,7 @@ export const DICTIONARY = {
     'teams.priority': 'Prioridade de planeamento',
     'teams.description': 'Descrição',
     'teams.addPosition': 'Adicionar posição',
+    'teams.positionName': 'Nome da posição',
     'teams.addMember': 'Adicionar membro',
     'teams.noLeader': 'Sem líder',
 
@@ -219,6 +221,7 @@ export const DICTIONARY = {
     'nav.requests': 'Access requests',
     'nav.org': 'Organization',
     'nav.logout': 'Sign out',
+    'nav.menu': 'Menu',
 
     'common.actions': 'Actions',
     'common.save': 'Save',
@@ -310,6 +313,7 @@ export const DICTIONARY = {
     'teams.priority': 'Planning priority',
     'teams.description': 'Description',
     'teams.addPosition': 'Add position',
+    'teams.positionName': 'Position name',
     'teams.addMember': 'Add member',
     'teams.noLeader': 'No leader',
 

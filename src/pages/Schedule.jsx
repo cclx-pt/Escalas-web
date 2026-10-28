@@ -125,10 +125,10 @@ function TeamGrid({ team, sundays, picks, setPicks, isScheduling, t }) {
 
   return (
     <div>
-      <h3 className="mb-2 flex items-center gap-2 font-semibold">
+      <h2 className="mb-2 flex items-center gap-2 font-semibold">
         <span className="h-3 w-3 rounded-full" style={{ background: team.color }} />
         {team.name}
-      </h3>
+      </h2>
       {team.positions.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t('teams.positions')}: {t('common.noResults')}</p>
       ) : (
@@ -158,6 +158,7 @@ function TeamGrid({ team, sundays, picks, setPicks, isScheduling, t }) {
                       return (
                         <td key={sunday} className="px-1 py-1">
                           <select
+                            aria-label={`${pos.name}, ${shortDate(sunday)}`}
                             value={value}
                             onChange={(e) => change(pos.id, sunday, e.target.value)}
                             className={cn(

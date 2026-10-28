@@ -27,32 +27,52 @@ export function safeEqual(a, b) {
   return crypto.timingSafeEqual(bufA, bufB)
 }
 
+/** Serializa as operações OTP do mesmo email (evita contornar limites em paralelo). */
+function lockEmail(client, email) {
+  return client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`otp:${email}`])
+}
+
+const WINDOW_SQL = `created_at > now() - make_interval(mins => $2)`
+
 /**
  * Emite um novo código OTP. Invalida os códigos anteriores por consumir do
- * mesmo email. Devolve o código em claro (para enviar por email).
+ * mesmo email. Devolve o código em claro (para enviar por email), ou null se o
+ * email já pediu códigos demais na janela (`otp.maxCodesPerWindow`).
  */
 export async function issueCode(email) {
   const code = generateCode()
   const codeHash = hashCode(code)
   const expiresAt = new Date(Date.now() + config.otp.ttlMinutes * 60_000)
 
-  await pool.query(
-    `UPDATE otp_codes SET consumed_at = now()
-     WHERE email = $1 AND consumed_at IS NULL`,
-    [email],
-  )
+  return pool.withTransaction(async (client) => {
+    await lockEmail(client, email)
 
-  await pool.query(
-    `INSERT INTO otp_codes (email, code_hash, expires_at) VALUES ($1, $2, $3)`,
-    [email, codeHash, expiresAt],
-  )
+    const { rows } = await client.query(
+      `SELECT count(*)::int AS n FROM otp_codes WHERE email = $1 AND ${WINDOW_SQL}`,
+      [email, config.otp.windowMinutes],
+    )
+    if (rows[0].n >= config.otp.maxCodesPerWindow) return null
 
-  return code
+    await client.query(
+      `UPDATE otp_codes SET consumed_at = now()
+       WHERE email = $1 AND consumed_at IS NULL`,
+      [email],
+    )
+    await client.query(
+      `INSERT INTO otp_codes (email, code_hash, expires_at) VALUES ($1, $2, $3)`,
+      [email, codeHash, expiresAt],
+    )
+    return code
+  })
 }
 
 /**
  * Verifica o código de um email. Devolve { ok, reason }.
  * Marca como consumido em caso de sucesso; incrementa tentativas em falha.
+ *
+ * Além do limite por código (`otp.maxAttempts`), as falhas somam-se por email
+ * na janela (`otp.maxFailuresPerWindow`): pedir um código novo não repõe o
+ * contador, por isso não dá para adivinhar indefinidamente.
  */
 export async function verifyCode(email, code) {
   // Código mestre de desenvolvimento (ignorado em produção).
@@ -60,33 +80,45 @@ export async function verifyCode(email, code) {
     return { ok: true }
   }
 
-  const { rows } = await pool.query(
-    `SELECT id, code_hash, expires_at, attempts
-     FROM otp_codes
-     WHERE email = $1 AND consumed_at IS NULL
-     ORDER BY created_at DESC
-     LIMIT 1`,
-    [email],
-  )
+  return pool.withTransaction(async (client) => {
+    await lockEmail(client, email)
 
-  const record = rows[0]
-  if (!record) return { ok: false, reason: 'not_found' }
+    const failures = await client.query(
+      `SELECT COALESCE(sum(attempts), 0)::int AS n FROM otp_codes WHERE email = $1 AND ${WINDOW_SQL}`,
+      [email, config.otp.windowMinutes],
+    )
+    if (failures.rows[0].n >= config.otp.maxFailuresPerWindow) {
+      return { ok: false, reason: 'too_many_attempts' }
+    }
 
-  if (new Date(record.expires_at).getTime() < Date.now()) {
-    return { ok: false, reason: 'expired' }
-  }
+    const { rows } = await client.query(
+      `SELECT id, code_hash, expires_at, attempts
+       FROM otp_codes
+       WHERE email = $1 AND consumed_at IS NULL
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [email],
+    )
 
-  if (record.attempts >= config.otp.maxAttempts) {
-    await pool.query('UPDATE otp_codes SET consumed_at = now() WHERE id = $1', [record.id])
-    return { ok: false, reason: 'too_many_attempts' }
-  }
+    const record = rows[0]
+    if (!record) return { ok: false, reason: 'not_found' }
 
-  const matches = safeEqual(hashCode(code), record.code_hash)
-  if (!matches) {
-    await pool.query('UPDATE otp_codes SET attempts = attempts + 1 WHERE id = $1', [record.id])
-    return { ok: false, reason: 'mismatch' }
-  }
+    if (new Date(record.expires_at).getTime() < Date.now()) {
+      return { ok: false, reason: 'expired' }
+    }
 
-  await pool.query('UPDATE otp_codes SET consumed_at = now() WHERE id = $1', [record.id])
-  return { ok: true }
+    if (record.attempts >= config.otp.maxAttempts) {
+      await client.query('UPDATE otp_codes SET consumed_at = now() WHERE id = $1', [record.id])
+      return { ok: false, reason: 'too_many_attempts' }
+    }
+
+    const matches = safeEqual(hashCode(code), record.code_hash)
+    if (!matches) {
+      await client.query('UPDATE otp_codes SET attempts = attempts + 1 WHERE id = $1', [record.id])
+      return { ok: false, reason: 'mismatch' }
+    }
+
+    await client.query('UPDATE otp_codes SET consumed_at = now() WHERE id = $1', [record.id])
+    return { ok: true }
+  })
 }

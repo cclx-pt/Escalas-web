@@ -122,7 +122,7 @@ export default function Volunteers() {
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('common.search')} className="pl-8" />
         </div>
         <Select value={teamId || 'all'} onValueChange={(v) => setTeamId(v === 'all' ? '' : v)}>
-          <SelectTrigger className="w-56">
+          <SelectTrigger className="w-56" aria-label={t('vol.filterTeam')}>
             <SelectValue placeholder={t('vol.filterTeam')} />
           </SelectTrigger>
           <SelectContent>
@@ -174,16 +174,21 @@ export default function Volunteers() {
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Switch checked={v.isActive} onCheckedChange={() => toggle.mutate(v.id)} />
+                      <Switch
+                        checked={v.isActive}
+                        onCheckedChange={() => toggle.mutate(v.id)}
+                        aria-label={`${t('common.active')}: ${v.name}`}
+                      />
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button size="icon" variant="ghost" onClick={() => openEdit(v)}>
+                      <Button size="icon" variant="ghost" aria-label={`${t('common.edit')} ${v.name}`} onClick={() => openEdit(v)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
                       <Button
                         size="icon"
                         variant="ghost"
                         className="text-destructive hover:text-destructive"
+                        aria-label={`${t('vol.delete')}: ${v.name}`}
                         onClick={() => setConfirmDelete(v)}
                       >
                         <Trash2 className="h-4 w-4" />

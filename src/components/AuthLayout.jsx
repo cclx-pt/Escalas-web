@@ -7,7 +7,7 @@ import { useI18n } from '@/hooks/useI18n'
 export function AuthLayout({ title, description, children, footer }) {
   const { t } = useI18n()
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+    <main className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
@@ -23,6 +23,6 @@ export function AuthLayout({ title, description, children, footer }) {
         </div>
         {footer && <div className="mt-4 text-center text-sm text-muted-foreground">{footer}</div>}
       </div>
-    </div>
+    </main>
   )
 }
