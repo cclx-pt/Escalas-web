@@ -36,11 +36,10 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            'react-vendor': ['react', 'react-dom'],
-            'data-vendor': ['@tanstack/react-query', 'zod'],
-            'ui-vendor': ['framer-motion', 'sonner'],
-            'search-vendor': ['fuse.js', 'date-fns'],
+          manualChunks(id) {
+            if (/node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return 'react-vendor'
+            if (id.includes('node_modules/@tanstack/')) return 'data-vendor'
+            if (id.includes('node_modules/sonner/')) return 'ui-vendor'
           },
         },
       },
